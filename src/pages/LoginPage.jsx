@@ -1,0 +1,202 @@
+import { useState } from "react";
+import { useLogin, useNotify } from "react-admin";
+import { Link } from "react-router-dom";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+
+const LOGO_URL = "/imagenes/landing/Logo_Landing.png";
+
+const FORM_INICIAL = {
+  username: "",
+  password: "",
+};
+
+const LoginPage = () => {
+  const login = useLogin();
+  const notify = useNotify();
+
+  const [form, setForm] = useState(FORM_INICIAL);
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setForm((formActual) => ({
+      ...formActual,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      // React Admin usa authProvider para llamar al backend de login.
+      await login(form);
+    } catch (error) {
+      notify("Correo o contraseña incorrectos", { type: "error" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={styles.container}>
+      <div style={styles.card}>
+        <img src={LOGO_URL} alt="Interivalle" style={styles.logo} />
+        <h1 style={styles.title}>INGRESAR</h1>
+
+        <form onSubmit={handleSubmit}>
+          <input
+            type="email"
+            name="username"
+            placeholder="Correo electrónico"
+            value={form.username}
+            onChange={handleChange}
+            required
+            style={styles.input}
+          />
+
+          <div style={styles.passwordWrapper}>
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Contraseña"
+              value={form.password}
+              onChange={handleChange}
+              required
+              style={{ ...styles.input, ...styles.passwordInput }}
+            />
+            <button
+              type="button"
+              aria-label={showPassword ? "Ocultar contrasena" : "Mostrar contrasena"}
+              title={showPassword ? "Ocultar contrasena" : "Mostrar contrasena"}
+              onClick={() => setShowPassword((visible) => !visible)}
+              onMouseDown={(event) => event.preventDefault()}
+              style={styles.passwordToggle}
+            >
+              {showPassword ? (
+                <Visibility fontSize="small" />
+              ) : (
+                <VisibilityOff fontSize="small" />
+              )}
+            </button>
+          </div>
+
+          <button type="submit" style={styles.button} disabled={loading}>
+            {loading ? "Ingresando..." : "Iniciar Sesión"}
+          </button>
+        </form>
+
+        <div style={styles.registerBox}>
+          <span style={styles.registerText}>¿No tienes cuenta?</span>
+          <Link to="/register" style={styles.link}>
+            REGISTRATE AQUI
+          </Link>
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
+const styles = {
+  container: {
+    minHeight: "100vh",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f4f6f8",
+    padding: "32px 20px",
+  },
+  card: {
+    width: "100%",
+    maxWidth: "520px",
+    boxSizing: "border-box",
+    backgroundColor: "#fff",
+    padding: "42px 44px",
+    borderRadius: "12px",
+    boxShadow: "0 10px 28px rgba(0,0,0,0.12)",
+    textAlign: "center",
+  },
+  logo: {
+    width: "270px",
+    maxWidth: "100%",
+    height: "auto",
+    marginBottom: "18px",
+  },
+  title: {
+    margin: "0 0 25px",
+    fontSize: "32px",
+  },
+  input: {
+    width: "100%",
+    padding: "15px 16px",
+    marginBottom: "16px",
+    border: "1px solid #ccc",
+    borderRadius: "8px",
+    fontSize: "16px",
+    boxSizing: "border-box",
+  },
+  passwordWrapper: {
+    position: "relative",
+    marginBottom: "16px",
+  },
+  passwordInput: {
+    marginBottom: 0,
+    paddingRight: "52px",
+  },
+  passwordToggle: {
+    position: "absolute",
+    top: "50%",
+    right: "12px",
+    transform: "translateY(-50%)",
+    width: "36px",
+    height: "36px",
+    border: "none",
+    background: "transparent",
+    color: "#111827",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+    padding: 0,
+  },
+  button: {
+    width: "100%",
+    padding: "15px",
+    backgroundColor: "#0a8f08",
+    color: "#fff",
+    border: "none",
+    borderRadius: "8px",
+    fontSize: "17px",
+    fontWeight: 700,
+    cursor: "pointer",
+  },
+  registerBox: {
+    marginTop: "22px",
+    padding: "14px 16px",
+    borderRadius: "10px",
+    backgroundColor: "#ecfdf3",
+    border: "1px solid #bbf7d0",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: "8px",
+    flexWrap: "wrap",
+  },
+  registerText: {
+    color: "#111827",
+    fontSize: "16px",
+  },
+  link: {
+    color: "#0a8f08",
+    fontWeight: 800,
+    textDecoration: "none",
+    fontSize: "17px",
+  },
+};
+
+export default LoginPage;

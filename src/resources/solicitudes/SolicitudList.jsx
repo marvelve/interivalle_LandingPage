@@ -1,0 +1,248 @@
+import * as React from "react";
+import {
+  Button,
+  Datagrid,
+  DateField,
+  FunctionField,
+  List,
+  TextField,
+  TopToolbar,
+  useRedirect,
+} from "react-admin";
+import AddIcon from "@mui/icons-material/Add";
+import EventRepeatIcon from "@mui/icons-material/EventRepeat";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import { Box, Chip } from "@mui/material";
+import Tooltip from "@mui/material/Tooltip";
+
+import { compactDatagridSx, compactListSx } from "../../app/listStyles";
+import SolicitudVacia from "./SolicitudVacia";
+
+const ROL_ADMIN = "1";
+const ROL_SUPERVISOR = "2";
+const ROL_CLIENTE = "3";
+
+const TIPO_COTIZACION_BASE = "COTIZACION_BASE";
+const TIPO_VISITA_TECNICA = "VISITA_TECNICA";
+
+const ESTADO_PENDIENTE = "PENDIENTE";
+const ESTADO_REPROGRAMADA = "REPROGRAMADA";
+
+const estadoSolicitudChipSx = {
+  backgroundColor: "#2e7d32",
+  color: "#ffffff",
+  fontWeight: 700,
+  borderRadius: "999px",
+  height: 32,
+  px: 0.5,
+  "& .MuiChip-label": {
+    px: 1.5,
+  },
+};
+
+const estadoPendienteChipSx = {
+  ...estadoSolicitudChipSx,
+  backgroundColor: "#fff3e0",
+  color: "#ef6c00",
+  border: "1px solid #ffcc80",
+};
+
+const EstadoSolicitudChip = ({ estado }) => (
+  <Chip
+    label={estado || "-"}
+    size="small"
+    sx={estado === ESTADO_PENDIENTE ? estadoPendienteChipSx : estadoSolicitudChipSx}
+  />
+);
+
+const CrearCotizacionButton = ({ record }) => {
+  const redirect = useRedirect();
+
+  const handleClick = () => {
+    // Guarda la solicitud para que el flujo de cotizacion base pueda continuar.
+    localStorage.setItem("idSolicitud", record.idSolicitud);
+    redirect("/cotizacion-base");
+  };
+
+  return (
+    <Button
+      variant="contained"
+      size="small"
+      onClick={handleClick}
+      sx={{
+        backgroundColor: "#2e7d32",
+        "&:hover": { backgroundColor: "#1b5e20" },
+      }}
+    >
+      Crear Cotización
+    </Button>
+  );
+};
+
+const SolicitudesActions = () => {
+  const redirect = useRedirect();
+
+  return (
+    <TopToolbar>
+      <Button
+        label=" Crear Solicitud"
+        onClick={() => redirect("/solicitudes/create")}
+      >
+        <AddIcon />
+      </Button>
+    </TopToolbar>
+  );
+};
+
+const SolicitudList = () => {
+  const correoUsuario = localStorage.getItem("correoUsuario") || "";
+  const idRol = String(localStorage.getItem("idRol") || "");
+
+  const esAdmin = idRol === ROL_ADMIN;
+  const esSupervisor = idRol === ROL_SUPERVISOR;
+  const esCliente = idRol === ROL_CLIENTE;
+
+  const puedeVerColumnasInternas = esAdmin || esSupervisor;
+  const puedeVerTodo = esAdmin || esSupervisor;
+  const puedeVerCelular = esAdmin || esSupervisor;
+
+  const redirect = useRedirect();
+
+  const handleReprogramar = (record) => {
+    redirect(`/solicitudes/${record.idSolicitud}/reprogramar`);
+  };
+
+  const handleVerSolicitud = (record) => {
+    redirect(`/solicitudes/${record.idSolicitud}/show`);
+  };
+
+  return (
+    <List
+      title="Listado de Solicitudes"
+      resource="solicitudes"
+      actions={<SolicitudesActions />}
+      empty={<SolicitudVacia />}
+      filter={puedeVerTodo ? {} : { correoUsuario }}
+      sort={{ field: "idSolicitud", order: "DESC" }}
+      perPage={10}
+      storeKey={false}
+      sx={compactListSx}
+    >
+      <Datagrid
+        rowClick={false}
+        bulkActionButtons={false}
+        size="small"
+        sx={compactDatagridSx}
+      >
+        {puedeVerColumnasInternas && (
+          <TextField source="idSolicitud" label="ID" />
+        )}
+
+        {puedeVerColumnasInternas && (
+          <TextField source="correoUsuario" label="Correo Usuario" />
+        )}
+
+        <TextField source="tipoSolicitud" label="Tipo Solicitud" />
+        <TextField source="nombreProyecto" label="Proyecto" />
+
+        <FunctionField
+          label="Estado"
+          render={(record) => <EstadoSolicitudChip estado={record?.estado} />}
+        />
+
+        <DateField source="fechaSolicitud" label="Fecha" />
+
+        <FunctionField
+          label="Fecha/Hora Visita"
+          render={(record) => {
+            if (record?.tipoSolicitud !== TIPO_VISITA_TECNICA) return "-";
+
+            const fecha = record?.fechaVisita || "-";
+            const hora = record?.horaVisita || "-";
+
+            return `${fecha} - ${hora}`;
+          }}
+        />
+
+        {puedeVerCelular && (
+          <FunctionField
+            label="Número Celular"
+            render={(record) => {
+              if (record?.tipoSolicitud !== TIPO_VISITA_TECNICA) return "-";
+              return record?.celularCliente || "-";
+            }}
+          />
+        )}
+
+        <FunctionField
+          label="Servicios"
+          render={(record) => {
+            if (
+              !record?.solicitudServicios ||
+              record.solicitudServicios.length === 0
+            ) {
+              return "Sin servicios";
+            }
+
+            return record.solicitudServicios
+              .map((servicio) => servicio.nombreServicio)
+              .join(", ");
+          }}
+        />
+
+        <FunctionField
+          label="Acciones"
+          render={(record) => {
+            // Las cotizaciones base pendientes se envian al flujo de cotizacion.
+            if (
+              record?.tipoSolicitud === TIPO_COTIZACION_BASE &&
+              (record?.estado === ESTADO_PENDIENTE ||
+                record?.estado === ESTADO_REPROGRAMADA)
+            ) {
+              return <CrearCotizacionButton record={record} />;
+            }
+
+            if (record?.tipoSolicitud === TIPO_VISITA_TECNICA) {
+              // Cliente reprograma pendientes. Admin/Supervisor tambien pueden reprogramadas.
+              const puedeReprogramar =
+                (esAdmin || esSupervisor || esCliente) &&
+                (record?.estado === ESTADO_PENDIENTE ||
+                  ((esAdmin || esSupervisor) &&
+                    record?.estado === ESTADO_REPROGRAMADA));
+
+              return (
+                <Box display="flex" gap={1} alignItems="center">
+                  <Tooltip title="Ver solicitud">
+                    <Button
+                      label=""
+                      onClick={() => handleVerSolicitud(record)}
+                      sx={{ minWidth: 36, padding: "6px" }}
+                    >
+                      <VisibilityIcon />
+                    </Button>
+                  </Tooltip>
+
+                  {puedeReprogramar && (
+                    <Tooltip title="Reprogramar visita">
+                      <Button
+                        label=""
+                        onClick={() => handleReprogramar(record)}
+                        sx={{ minWidth: 36, padding: "6px", color: "#14a800" }}
+                      >
+                        <EventRepeatIcon />
+                      </Button>
+                    </Tooltip>
+                  )}
+                </Box>
+              );
+            }
+
+            return <span>-</span>;
+          }}
+        />
+      </Datagrid>
+    </List>
+  );
+};
+
+export default SolicitudList;
