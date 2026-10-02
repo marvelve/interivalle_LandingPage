@@ -9,7 +9,7 @@ import {
   Stack,
   Divider,
 } from "@mui/material";
-import { listarComentarios, crearComentario } from "./seguimientoService";
+import { listarComentarios, crearComentario } from "./SeguimientoService";
 
 const ComentariosAvance = ({ idAvance }) => {
   const [comentarios, setComentarios] = useState([]);
