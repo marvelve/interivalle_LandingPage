@@ -8,6 +8,7 @@ import {
   CardContent,
   Container,
   Grid,
+  IconButton,
   MenuItem,
   Paper,
   Snackbar,
@@ -17,6 +18,8 @@ import {
   Typography,
 } from "@mui/material";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import FacebookIcon from "@mui/icons-material/Facebook";
+import YouTubeIcon from "@mui/icons-material/YouTube";
 import CalculateIcon from "@mui/icons-material/Calculate";
 import ConstructionIcon from "@mui/icons-material/Construction";
 import CarpenterIcon from "@mui/icons-material/Carpenter";
@@ -114,6 +117,23 @@ const LANDING_ONLY_MODE = true;
 const WHATSAPP_NUMBER = "573162990525";
 const PRIMARY_WHATSAPP_MESSAGE =
   "Hola, vengo de CotiAcabados y deseo solicitar una cotizacion.";
+const SOCIAL_LINKS = [
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/InteriValle/?locale=es_LA",
+    icon: <FacebookIcon />,
+  },
+  {
+    label: "YouTube",
+    href: "https://www.youtube.com/channel/UCgQVQZyn3_bwKJTxsa3npKQ",
+    icon: <YouTubeIcon />,
+  },
+  {
+    label: "WhatsApp",
+    href: `https://wa.me/${WHATSAPP_NUMBER}`,
+    icon: <WhatsAppIcon />,
+  },
+];
 
 export function getTomorrowDateString(baseDate = new Date()) {
   const tomorrow = new Date(baseDate);
@@ -460,13 +480,45 @@ export default function LandingInterivalle({ onNavigate }) {
                     minWidth: 0,
                     px: 0.5,
                     fontWeight: 900,
-                    fontSize: 13,
+                    fontSize: 17,
                     textTransform: "none",
                     color: COLORS.text,
                   }}
                 >
                   {label}
                 </Button>
+              ))}
+            </Stack>
+
+            <Stack
+              direction="row"
+              spacing={1}
+              alignItems="center"
+              sx={{ display: { xs: "none", md: "flex" }, flexShrink: 0 }}
+            >
+              {SOCIAL_LINKS.map((social) => (
+                <IconButton
+                  key={social.label}
+                  component="a"
+                  href={social.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={social.label}
+                  sx={{
+                    width: 38,
+                    height: 38,
+                    bgcolor: COLORS.white,
+                    color: COLORS.dark,
+                    border: `1px solid ${COLORS.border}`,
+                    boxShadow: "0 3px 10px rgba(15, 23, 42, 0.08)",
+                    "&:hover": {
+                      bgcolor: COLORS.primary,
+                      color: COLORS.white,
+                    },
+                  }}
+                >
+                  {social.icon}
+                </IconButton>
               ))}
             </Stack>
 
@@ -488,25 +540,6 @@ export default function LandingInterivalle({ onNavigate }) {
               Cotizar
             </Button>
 
-            <Button
-              variant="contained"
-              startIcon={<WhatsAppIcon />}
-              href={`https://wa.me/${WHATSAPP_NUMBER}`}
-              target="_blank"
-              rel="noreferrer"
-              sx={{
-                bgcolor: COLORS.primary,
-                "&:hover": { bgcolor: COLORS.primaryDark },
-                borderRadius: 1.4,
-                px: { xs: 1.4, sm: 2.2 },
-                py: 0.9,
-                fontWeight: 900,
-                textTransform: "none",
-                flexShrink: 0,
-              }}
-            >
-              WhatsApp
-            </Button>
           </Toolbar>
         </Container>
       </AppBar>
@@ -569,7 +602,7 @@ export default function LandingInterivalle({ onNavigate }) {
                 textTransform: "uppercase",
               }}
             >
-              Solicitar cotizacion
+              Cotiza con Nosotros
             </Button>
           </Box>
         </Container>
@@ -806,6 +839,30 @@ export default function LandingInterivalle({ onNavigate }) {
                 <Stack direction="row" spacing={1.2} alignItems="center">
                   <LocationOnIcon sx={{ color: "#9be69f" }} />
                   <Typography>Cali, Colombia</Typography>
+                </Stack>
+                <Stack direction="row" spacing={1.2} alignItems="center" sx={{ pt: 1 }}>
+                  {SOCIAL_LINKS.map((social) => (
+                    <IconButton
+                      key={social.label}
+                      component="a"
+                      href={social.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={social.label}
+                      sx={{
+                        width: 42,
+                        height: 42,
+                        bgcolor: COLORS.white,
+                        color: COLORS.dark,
+                        "&:hover": {
+                          bgcolor: "#9be69f",
+                          color: COLORS.dark,
+                        },
+                      }}
+                    >
+                      {social.icon}
+                    </IconButton>
+                  ))}
                 </Stack>
               </Stack>
             </Grid>
