@@ -96,6 +96,12 @@ const services = [
   },
 ];
 
+const completedProjects = [
+  { title: "Pomelos", videoId: "c3ULVzyqBG0" },
+  { title: "Heliconias", videoId: "DGeg6IyAIzc" },
+  { title: "Amaranto", videoId: "i8gDlB9TJQA" },
+];
+
 const benefits = [
   { title: "Atencion personalizada", icon: <ScheduleIcon /> },
   { title: "Cotizaciones claras", icon: <AssignmentTurnedInIcon /> },
@@ -113,10 +119,7 @@ const initialForm = {
   numeroCelular: "",
 };
 
-const LANDING_ONLY_MODE = true;
 const WHATSAPP_NUMBER = "573162990525";
-const PRIMARY_WHATSAPP_MESSAGE =
-  "Hola, vengo de CotiAcabados y deseo solicitar una cotizacion.";
 const SOCIAL_LINKS = [
   {
     label: "Facebook",
@@ -156,29 +159,6 @@ function defaultNavigate(path) {
   if (typeof window !== "undefined" && path) {
     window.location.assign(path);
   }
-}
-
-function buildWhatsAppUrl(message) {
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-}
-
-function openWhatsApp(message) {
-  if (typeof window !== "undefined") {
-    window.open(buildWhatsAppUrl(message), "_blank", "noopener,noreferrer");
-  }
-}
-
-function buildVisitWhatsAppMessage(form) {
-  return [
-    PRIMARY_WHATSAPP_MESSAGE,
-    "",
-    "Datos para visita tecnica:",
-    `Nombre del proyecto: ${String(form.nombreProyecto || "").trim()}`,
-    `Fecha de visita: ${form.fechaVisita}`,
-    `Hora: ${form.horaVisita}`,
-    `Direccion: ${String(form.direccionProyecto || "").trim()}`,
-    `Numero celular: ${String(form.numeroCelular || "").trim()}`,
-  ].join("\n");
 }
 
 function ServiceCard({ service }) {
@@ -382,11 +362,6 @@ export default function LandingInterivalle({ onNavigate }) {
   };
 
   const handlePrimaryCTA = () => {
-    if (LANDING_ONLY_MODE) {
-      openWhatsApp(PRIMARY_WHATSAPP_MESSAGE);
-      return;
-    }
-
     if (isAuthenticated) {
       navigateTo("/solicitudes/create");
       return;
@@ -409,11 +384,6 @@ export default function LandingInterivalle({ onNavigate }) {
 
     if (typeof window !== "undefined") {
       window.sessionStorage.setItem("landingVisitaPrefill", JSON.stringify(form));
-    }
-
-    if (LANDING_ONLY_MODE) {
-      openWhatsApp(buildVisitWhatsAppMessage(form));
-      return;
     }
 
     if (isAuthenticated) {
@@ -604,6 +574,69 @@ export default function LandingInterivalle({ onNavigate }) {
             >
               Cotiza con Nosotros
             </Button>
+          </Box>
+        </Container>
+      </Box>
+
+      <Box
+        component="section"
+        id="trabajos-realizados"
+        aria-labelledby="trabajos-realizados-titulo"
+        sx={{ bgcolor: COLORS.section, py: { xs: 5, md: 5.5 } }}
+      >
+        <Container maxWidth="xl">
+          <Stack alignItems="center" sx={{ textAlign: "center", mb: 3 }}>
+            <Typography
+              component="h2"
+              id="trabajos-realizados-titulo"
+              sx={{ color: COLORS.primaryDark, fontWeight: 900, fontSize: { xs: 28, md: 34 } }}
+            >
+              TRABAJOS REALIZADOS
+            </Typography>
+          </Stack>
+
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "minmax(0, 1fr)",
+                sm: "repeat(4, minmax(0, 1fr))",
+                md: "repeat(6, minmax(0, 1fr))",
+              },
+              gap: { xs: 2.5, md: 3 },
+              alignItems: "stretch",
+            }}
+          >
+            {completedProjects.map(({ title, videoId }) => (
+              <Card
+                key={videoId}
+                elevation={0}
+                sx={{
+                  gridColumn: { sm: "span 2" },
+                  "&:last-child": { gridColumn: { sm: "2 / span 2", md: "span 2" } },
+                  height: "100%",
+                  overflow: "hidden",
+                  borderRadius: 2.5,
+                  border: `1px solid ${COLORS.border}`,
+                  boxShadow: "0 14px 26px rgba(15, 23, 42, 0.08)",
+                }}
+              >
+                <Box
+                  component="iframe"
+                  src={`https://www.youtube.com/embed/${videoId}?autoplay=0&controls=1&fs=1`}
+                  title={`Video del proyecto ${title}`}
+                  loading="lazy"
+                  allowFullScreen
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  sx={{ display: "block", width: "100%", height: { xs: 200, md: 210 }, border: 0, bgcolor: "#000" }}
+                />
+                <CardContent sx={{ pt: 5, px: 2.4, pb: 2.6 }}>
+                  <Typography component="h3" fontWeight={900} sx={{ mb: 1, fontSize: 18 }}>
+                    {title}
+                  </Typography>
+                </CardContent>
+              </Card>
+            ))}
           </Box>
         </Container>
       </Box>
